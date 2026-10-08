@@ -1,14 +1,16 @@
 from dash import html, dcc
 import plotly.graph_objects as go
 from components.cards import notice, table
-from components.charts import graph, finish, empty
+from components.charts import graph, finish, empty, ENTERTAINMENT, COMPARATOR
+from components.platforms import platform_legend
 from utils.data_loader import diagnostic_pairs, markdown_for_app, ArtifactError
 
 
-def layout(categories, saved_evidence=None):
+def layout(categories, saved_evidence=None, problem=None):
     comparators = [{'label':'All non-Entertainment', 'value':'Rest'}] + [
         {'label': c, 'value': c} for c in categories if c!='Entertainment']
-    return html.Section([html.H2('Problem diagnosis'),
+    return html.Section([html.Span('03 / DIAGNOSTIC EVIDENCE',className='page-kicker'),html.H2('Problem diagnosis'),
+        problem,
         notice('Association / diagnostic evidence. Residual is not a causal effect. '
                'Live gap charts use filters and full source months only. Saved evidence below retains the Step 3 scope.'),
         html.Div([dcc.Dropdown(id='diagnosis-dimension', options=['Month','Platform','Post_Type','Region','Content_Type'],
@@ -30,11 +32,11 @@ def render(frame, dimension, comparator, interaction):
         fig = empty('No common support: both groups need ≥30 recorded ER values per segment')
     else:
         fig = go.Figure()
-        for col, label in [('Entertainment ER (%)','Entertainment'), ('Comparator ER (%)', comparator)]:
+        for col, label,color in [('Entertainment ER (%)','Entertainment',ENTERTAINMENT), ('Comparator ER (%)', comparator,COMPARATOR)]:
             if dimension == 'Month':
-                fig.add_scatter(x=supported[dimension],y=supported[col],name=label,mode='lines+markers')
+                fig.add_scatter(x=supported[dimension],y=supported[col],name=label,mode='lines+markers',line={'color':color,'width':3})
             else:
-                fig.add_bar(x=supported[dimension], y=supported[col], name=label)
+                fig.add_bar(x=supported[dimension], y=supported[col], name=label,marker_color=color)
         finish(fig, f'Entertainment vs {comparator} · same {dimension}', 'Mean source ER (%)')
         fig.update_layout(barmode='group'); fig.update_xaxes(type='category')
     axes = interaction.split('|')
@@ -45,7 +47,7 @@ def render(frame, dimension, comparator, interaction):
     else:
         pivot = eligible.pivot(index=axes[0], columns=axes[1], values='Gap (pp)')
         heatmap = go.Figure(go.Heatmap(z=pivot.values, x=pivot.columns, y=pivot.index,
-            colorscale='Blues', text=pivot.round(2).values, texttemplate='%{text}',
+            colorscale=[[0,'#f9f7f1'],[.5,'#d6c39d'],[1,'#987536']], text=pivot.round(2).values, texttemplate='%{text}',
             hovertemplate='%{y} / %{x}<br>Comparator − Entertainment: %{z:.2f} pp<extra></extra>',
             hoverongaps=False, colorbar={'title':'pp'}))
         finish(heatmap, 'Where does the recorded ER gap remain?'); heatmap.update_layout(height=410)
@@ -55,12 +57,13 @@ def render(frame, dimension, comparator, interaction):
     return html.Div([notice(f'Selected full-month scope: {e_count:,} Entertainment / {r_count:,} comparator records. '
         'A Content Category filter can remove either group; missing support is not zero gap. '
         'n≥30 is the existing descriptive screening rule, not a significance threshold.'),
-        html.Div([html.Div(graph(fig),className='panel'), html.Div(graph(heatmap),className='panel')],className='two-columns'),
+        html.Div([html.Div([platform_legend(supported[dimension].tolist()) if dimension=='Platform' else html.Div(),graph(fig)],className='panel'),
+                  html.Div(graph(heatmap),className='panel')],className='two-columns'),
         html.Details([html.Summary('Segment sample sizes and gaps'),table(comparison),table(joint)])])
 
 
 def evidence(repo):
-    parts = [html.H3('Saved evidence · original Step 3 scope')]
+    parts = [html.H3('Saved evidence'),html.P('Original Step 3 scope · independent of live filters',className='muted')]
     for key, title in [('drivers','Driver mix decomposition'), ('interactions','Interaction coverage'),
                        ('robustness','Robustness checks')]:
         try:
@@ -73,3 +76,12 @@ def evidence(repo):
         except ArtifactError as exc:
             parts.append(notice(str(exc),error=True))
     return html.Div(parts,className='panel')
+
+
+def problem_summary(repo):
+    try:
+        text = repo.text('problem').split('## Kết luận chính',1)[1].split('\n## ',1)[0]
+        return html.Div([html.Span('ESTABLISHED PROBLEM · STEP 2 · ORIGINAL SCOPE',className='eyebrow'),
+                         dcc.Markdown(markdown_for_app(text),className='prose')],className='finding-card')
+    except (ArtifactError,IndexError):
+        return html.Div()

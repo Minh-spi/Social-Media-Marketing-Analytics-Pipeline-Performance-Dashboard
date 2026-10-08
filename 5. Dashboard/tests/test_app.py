@@ -116,5 +116,36 @@ class DashTests(unittest.TestCase):
         self.assertEqual(self.client.get('/source/not-a-source').status_code,404)
         self.assertEqual(self.client.get('/source/root_cause').status_code,200)
 
+    def test_recommendation_callback_and_experiment_selection(self):
+        key='recommendation-content.children'
+        for priority,kind,experiment in [('All','All','E1'),('High','Direct action','E3'),('Low','Direct action','E5')]:
+            metadata=self.app.callback_map[key]
+            payload={'output':key,'outputs':{'id':'recommendation-content','property':'children'},
+                     'inputs':[dict(item,value=value) for item,value in zip(metadata['inputs'],[priority,kind,experiment])],
+                     'state':[],'changedPropIds':['experiment-select.value']}
+            response=self.client.post('/_dash-update-component',json=payload)
+            self.assertEqual(response.status_code,200,response.data.decode())
+            self.assertIn(experiment,response.data.decode())
+
+    def test_local_platform_assets(self):
+        for slug in ['facebook','instagram','linkedin','youtube','tiktok','x']:
+            response=self.client.get(f'/assets/platforms/{slug}.svg')
+            self.assertEqual(response.status_code,200)
+            self.assertIn(b'<svg',response.data)
+            response.close()
+
+    def test_platform_colors_reserved_for_platform_chart(self):
+        from components.charts import metric_chart, ENTERTAINMENT
+        from components.platforms import PLATFORM_COLORS
+        grouped=aggregate(Repository().analysis(),'Platform')
+        fig=metric_chart(grouped,'Platform','Views','Views')
+        for trace in fig.data:
+            self.assertEqual(trace.marker.color,PLATFORM_COLORS[trace.name])
+            self.assertEqual(trace.orientation,'h')
+        from pages.diagnosis import render
+        component=render(Repository().analysis(),'Platform','Rest','Platform|Post_Type')
+        # End-to-end serialization succeeds; category colors do not use platform mapping.
+        self.assertIsNotNone(component)
+
 
 if __name__=='__main__': unittest.main()

@@ -30,7 +30,7 @@ App bind localhost, debug tắt. Không cần Excel engine vì app đọc CSV/Ma
 
 | Trang | Câu hỏi / chức năng |
 | --- | --- |
-| Overview | Bao nhiêu record, exposure, engagement và click được ghi nhận? 7 KPI cards; chọn KPI cho monthly trend |
+| Overview | Bao nhiêu record, exposure, engagement và click được ghi nhận? 4 KPI chính, hàng supporting KPI/coverage; chọn KPI cho monthly trend |
 | Performance Explorer | Volume/rate khác nhau thế nào giữa segment? Chọn dimension/KPI, chart và table có n/median/coverage |
 | Problem Diagnosis | Gap Entertainment còn ở segment nào? Comparison theo Month/Platform/Post Type/Region/Content Type; heatmap interaction; saved evidence và summary bước 2/3 |
 | Recommendations & Experiments | Hành động nào đã được đề xuất, mức ưu tiên và rule kiểm chứng? Filter priority/type; matrix, experiment registration, full experiment/measurement plan |
@@ -58,7 +58,8 @@ App đọc `analysis_ready.csv` và baseline/problem artifacts bước 2; tables
 ├── pages/                  # overview / performance / diagnosis / recommendations
 ├── components/             # filters / cards & tables / charts
 ├── utils/data_loader.py    # artifact repository, filters, existing metric aggregation
-├── assets/style.css        # responsive styling
+├── assets/style.css        # base styling
+assets/visual.css       # presentation layer: cards, navigation, filters
 ├── tests/test_app.py       # data checks and real Dash HTTP/callback smoke tests
 ├── verification/           # validation status and hashes of unchanged prior outputs
 └── requirements.txt
@@ -74,6 +75,18 @@ python -m unittest discover -s "5. Dashboard/tests" -v
 
 Nếu dùng venv, thay `python` bằng interpreter venv ở trên. HTTP/callback tests chỉ chạy khi Dash/Plotly thực sự được cài; skip không đồng nghĩa pass runtime.
 
-**Trạng thái kiểm chứng cập nhật:** dependencies trong root `.venv` đã sẵn sàng; cả 15 data/Dash HTTP/callback tests pass, `pip check` pass. Launcher root `python run_dashboard.py` khởi động server; live HTTP trả 200 tại port 8050. Chưa kiểm tra visual rendering bằng browser. Xem [verification report](verification/validation.md). Launcher chỉ cài dashboard requirements, tránh lỗi đường dẫn dài khi cài JupyterLab trên Windows.
+**Trạng thái kiểm chứng cập nhật:** dependencies trong root `.venv` đã sẵn sàng; cả 18 data/Dash HTTP/callback tests pass. Launcher root `python run_dashboard.py` khởi động server. Chưa kiểm tra visual rendering bằng browser. Xem [verification report](verification/validation.md). Launcher chỉ cài dashboard requirements, tránh lỗi đường dẫn dài khi cài JupyterLab trên Windows.
 
-Tham khảo API: [Dash callbacks](https://dash.plotly.com/basic-callbacks), [Dash tabs](https://dash.plotly.com/dash-core-components/tabs).
+## Visual design
+
+Nền trắng, typography trung tính, sidebar navigation; Date/Platform hiện trực tiếp và các filter khác trong More filters. Các lựa chọn được nhắc lại bằng chips. KPI dùng số rút gọn, giá trị đầy đủ trong tooltip; coverage vẫn hiện trực tiếp.
+
+Platform color mapping chỉ áp dụng cho biểu đồ phân Platform: Facebook blue, Instagram magenta, LinkedIn blue đậm, YouTube đỏ, TikTok cyan, X charcoal. Các icon SVG nhận diện được lưu cục bộ trong assets, không cần tải từ CDN. Logo/tên hỗ trợ phân biệt hai platform gần màu; tên platform luôn hiện cùng màu.
+
+Các biểu đồ khác dùng neutral slate; so Entertainment/comparator dùng amber/xám để tránh nhầm với màu platform. Recommendations có cards theo priority và experiment selector; bảng đầy đủ và nguồn Markdown vẫn mở rộng được. CSS có layout cho desktop/tablet/mobile; resize chart khi chuyển trang.
+
+App debug tắt: sau khi sửa Python cần dừng process cũ bằng Ctrl+C và chạy lại launcher. Ctrl+F5 để refresh CSS/assets nếu browser giữ cache. Có thể preview song song bằng `python run_dashboard.py --port 8051`.
+
+Tham khảo API: [Dash callbacks](https://dash.plotly.com/basic-callbacks), [Dash RadioItems](https://dash.plotly.com/dash-core-components/radioitems).
+
+Visual refresh: monochrome SVG UI icons, compact sidebar menu, larger KPI typography, chart headers and responsive white surfaces. Presentation overrides live in `assets/visual.css`; reusable icons live in `components/icons.py`.

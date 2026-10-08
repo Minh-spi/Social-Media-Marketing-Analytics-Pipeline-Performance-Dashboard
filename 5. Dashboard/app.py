@@ -16,6 +16,8 @@ from flask import send_file, abort
 from utils.data_loader import Repository, ArtifactError, DIMENSIONS, METRICS, SOURCES, filter_frame
 from components.filters import layout as filter_layout
 from components.cards import notice
+from components.platforms import platform_label
+from components.icons import icon
 from pages import overview, performance, diagnosis, recommendations
 
 
@@ -33,26 +35,30 @@ def create_app(repository=None):
         frame['Post_Date'] = pd.to_datetime(frame.Post_Date)
     categories = sorted(frame.Content_Category.dropna().unique())
     app.layout = html.Div([
-        html.Header([html.Div([html.Span('SOCIAL MEDIA ANALYTICS',className='eyebrow'),
-                              html.H1('Performance → Evidence → Action'),
-                              html.P('Explore the portfolio findings, their limits and the next validation steps.')]),
-                     html.Span('READ-ONLY DATA APP',className='badge')],className='hero'),
+        html.Aside([
+            html.Div([html.Span(icon('performance'),className='brand-mark'),html.Div([html.Strong('Social Analytics'),html.Small('MARKETING WORKSPACE')])],className='brand'),
+            html.P('WORKSPACE',className='nav-caption'),
+            dcc.RadioItems(id='navigation',value='overview',className='sidebar-menu',options=[
+                {'label':html.Span([icon('overview'),html.Span('Overview')],className='nav-label'),'value':'overview'},
+                {'label':html.Span([icon('performance'),html.Span('Performance')],className='nav-label'),'value':'performance'},
+                {'label':html.Span([icon('diagnosis'),html.Span('Diagnosis')],className='nav-label'),'value':'diagnosis'},
+                {'label':html.Span([icon('actions'),html.Span('Actions & tests')],className='nav-label'),'value':'recommendations'}]),
+            html.Div([html.Span('PORTFOLIO PROJECT',className='eyebrow'),html.P('Social Media Marketing Analytics'),
+                      html.Small('Evidence from steps 1–4. Read-only exploration.')],className='sidebar-bottom')],className='sidebar'),
         html.Main([
+            html.Header([html.Div([html.Span('Workspace',className='breadcrumb'),html.Span(' / ',className='breadcrumb'),
+                                  html.Span('Social media marketing',className='breadcrumb current')]),
+                         html.Span([html.Span(className='status-dot'), 'Read-only analytics'],className='workspace-status')],className='topbar'),
             notice(error,error=True) if error else html.Div(),
             filter_layout(frame), html.Div(id='scope-label',className='scope'),
-            dcc.Tabs(id='navigation',value='overview',children=[
-                dcc.Tab(label='01  Overview',value='overview'),
-                dcc.Tab(label='02  Performance',value='performance'),
-                dcc.Tab(label='03  Diagnosis',value='diagnosis'),
-                dcc.Tab(label='04  Actions & tests',value='recommendations')]),
-            html.Div([overview.layout(),performance.layout(),diagnosis.layout(categories,diagnosis.evidence(repo)),recommendations.layout()],className='page-body'),
+            html.Div([overview.layout(),performance.layout(),diagnosis.layout(categories,diagnosis.evidence(repo),diagnosis.problem_summary(repo)),recommendations.layout(repo)],className='page-body'),
             html.Footer([html.P('Source ER/CTR definitions and unique-post grain remain unresolved. '
                                'Observed rates and residuals are not causal effects. No official KPI target.'),
                          html.Details([html.Summary('Source artifacts · download read-only originals'),
                             html.Div([html.A(key.replace('_',' ').title(),href='/source/'+key,target='_blank',rel='noopener noreferrer')
                                       for key in SOURCES],className='source-links')])])
-        ])
-    ])
+        ],className='workspace')
+    ],className='app-shell')
 
     @app.server.get('/source/<key>')
     def source_download(key):
@@ -96,9 +102,15 @@ def create_app(repository=None):
         end = frame.Post_Date.max().date().isoformat() if not frame.empty else None
         return (start,end,*[[] for _ in DIMENSIONS])
 
-    @app.callback(Output('recommendation-content','children'),Input('recommendation-priority','value'),Input('recommendation-type','value'))
-    def update_recommendations(priority,action_type):
-        return recommendations.render(repo,priority,action_type)
+    @app.callback(Output('filter-chips','children'),*[Input('filter-'+col,'value') for col in DIMENSIONS])
+    def selected_filter_chips(*values):
+        chips = [html.Span(platform_label(value) if col=='Platform' else f'{col.replace("_"," ")}: {value}',
+                           className='filter-chip') for col,selected in zip(DIMENSIONS,values) for value in selected or []]
+        return chips or html.Span('All platforms and segments · filters apply to live charts',className='filter-hint')
+
+    @app.callback(Output('recommendation-content','children'),Input('recommendation-priority','value'),Input('recommendation-type','value'),Input('experiment-select','value'))
+    def update_recommendations(priority,action_type,experiment):
+        return recommendations.render(repo,priority,action_type,experiment)
 
     return app
 

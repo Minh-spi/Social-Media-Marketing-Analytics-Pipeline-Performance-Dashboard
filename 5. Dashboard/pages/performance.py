@@ -2,10 +2,11 @@ from dash import html, dcc
 from components.cards import notice, table
 from components.charts import graph, metric_chart
 from utils.data_loader import aggregate, METRICS, BREAKDOWNS
+from components.platforms import platform_legend
 
 
 def layout():
-    return html.Section([html.H2('Performance explorer'),
+    return html.Section([html.Span('02 / SEGMENT COMPARISON',className='page-kicker'),html.H2('Performance explorer'),
         html.P('How do volume and recorded rates compare across segments?'),
         html.Div([dcc.Dropdown(id='performance-dimension', options=BREAKDOWNS, value='Content_Category', clearable=False),
                   dcc.Dropdown(id='performance-kpi', options=[{'label': v[0], 'value': k} for k,v in METRICS.items()],
@@ -23,7 +24,10 @@ def render(frame, dimension, metric):
                'Views', 'Engagement', 'Click coverage (%)']
     summary = grouped[list(dict.fromkeys(columns))].rename(columns={metric: METRICS[metric][0],
         metric+'_n':'Valid KPI records', metric+'_median':'Median source rate (%)' if kind=='rate' else 'Median per record'})
-    return html.Div([notice('Rate comparison = unweighted mean/median source rate at record level; absolute comparison = sum. '
-        'Read sample size and exposure alongside rates. Comparisons are descriptive, not causal or a business target.'),
-        html.Div(graph(metric_chart(grouped, dimension, metric, METRICS[metric][0], time=dimension=='Month')), className='panel'),
-        html.Div([html.H3('Segment summary'), table(summary)], className='panel')])
+    return html.Div([
+        html.Div([platform_legend(grouped.Platform.tolist()) if dimension=='Platform' else html.Div(),
+                  graph(metric_chart(grouped, dimension, metric, METRICS[metric][0], time=dimension=='Month'))],className='panel'),
+        html.Div([html.H3('Segment summary'),html.P('Volume, efficiency and valid sample size',className='muted'),table(summary)],className='panel'),
+        html.Details([html.Summary('How to read this comparison'),html.P(
+            'Rate comparison = unweighted mean/median source rate at record level; absolute comparison = sum. '
+            'Read sample size and exposure alongside rates. Comparisons are descriptive, not causal or a business target.')],className='data-notes')])
