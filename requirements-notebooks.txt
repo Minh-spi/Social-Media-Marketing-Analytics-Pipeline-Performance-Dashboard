@@ -1,0 +1,4 @@
+# Optional notebook UI. Install separately from dashboard/core dependencies.
+-r requirements.txt
+jupyterlab>=4.0,<5.0
+ipykernel>=6.0,<8.0

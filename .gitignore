@@ -1,0 +1,33 @@
+# Local Python environments and installed packages
+.venv/
+venv/
+env/
+**/.venv/
+**/.deps/
+
+# Python / Jupyter cache
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local secrets and machine settings
+.env
+.env.*
+!.env.example
+.aws/
+.codex/
+.agents/
+.idea/
+.vscode/
+
+# Build and OS files
+build/
+dist/
+*.egg-info/
+Thumbs.db
+.DS_Store
+
+# Keep datasets, executed notebooks and portfolio artifacts tracked.

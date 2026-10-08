@@ -1,0 +1,22 @@
+field,check,records
+Engagement,nonnegative finite integer count,0
+Views,nonnegative finite integer count,0
+Likes,nonnegative finite integer count,0
+Shares,nonnegative finite integer count,0
+Comments,nonnegative finite integer count,0
+Impressions,nonnegative finite integer count,0
+Video_Views,nonnegative finite integer count,0
+Live_Stream_Views,nonnegative finite integer count,0
+Clicks,nonnegative finite integer count,0
+Engagement_Rate,"finite decimal within [0, 1]; screening convention",0
+Click_Through_Rate,"finite decimal within [0, 1]; screening convention",0
+all raw columns,exact duplicate beyond first,0
+Post_ID,duplicate beyond first,600
+candidate key,duplicate beyond first,21
+Post_Date,timestamp/date mismatch,0
+Post_Hour,timestamp/hour mismatch,0
+Post_Hour,"outside [0, 23]",0
+Longitude,"outside [-180, 180]",0
+Latitude,"outside [-90, 90]",0
+dimensions,whitespace-only label,0
+columns,duplicate column names,0
