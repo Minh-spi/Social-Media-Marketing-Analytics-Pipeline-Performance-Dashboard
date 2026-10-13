@@ -15,10 +15,10 @@ def number(value, rate=False, compact=False):
     return f'{value:,.0f}'
 
 
-def card(label, value, note='', full_value=None, icon_name=None):
-    top = html.Div([html.Div(label,className='card-label'),html.Span(icon(icon_name),className='metric-icon')],className='card-top') if icon_name else html.Div(label,className='card-label')
+def card(label, value, note='', full_value=None, icon_name=None, icon_color='#64748b'):
+    top = html.Div([html.Div(label, className='card-label'), html.Span(icon(icon_name, color=icon_color), className='metric-icon')], className='card-top') if icon_name else html.Div(label, className='card-label')
     return html.Div([top, html.Strong(value, className='card-value'),
-                     html.Small(note)], className='kpi-card',title=full_value or value)
+                     html.Small(note)], className='kpi-card', title=full_value or value)
 
 
 def notice(text, error=False):
@@ -33,10 +33,13 @@ def table(frame, page_size=10):
     return dash_table.DataTable(
         data=clean.to_dict('records'), columns=[{'name': c, 'id': c} for c in clean.columns],
         page_size=page_size, sort_action='native', filter_action='native',
-        style_table={'overflowX': 'auto'},
+        style_table={'overflowX': 'auto', 'borderRadius': '12px', 'border': '1px solid #e2e8f0'},
         style_cell={'textAlign': 'left', 'fontFamily': 'inherit', 'fontSize': 13,
-                    'padding': '12px', 'minWidth': '90px', 'maxWidth': '420px',
-                    'whiteSpace': 'normal', 'height': 'auto'},
-        style_header={'fontWeight': '600', 'backgroundColor': '#f5f5f5', 'border': 'none','color':'#414141'},
-        style_data={'border': 'none', 'borderBottom': '1px solid #e8edf3'},
-        style_data_conditional=[{'if': {'row_index': 'odd'}, 'backgroundColor': '#fafafa'}])
+                    'padding': '12px 16px', 'minWidth': '90px', 'maxWidth': '420px',
+                    'whiteSpace': 'normal', 'height': 'auto', 'color': '#1e293b'},
+        style_header={'fontWeight': '700', 'backgroundColor': '#f8fafc', 'border': 'none',
+                      'borderBottom': '2px solid #e2e8f0', 'color': '#475569', 'fontSize': 12,
+                      'textTransform': 'uppercase', 'letterSpacing': '0.04em', 'padding': '14px 16px'},
+        style_data={'border': 'none', 'borderBottom': '1px solid #f1f5f9'},
+        style_data_conditional=[{'if': {'row_index': 'odd'}, 'backgroundColor': '#fbfcfd'},
+                                {'if': {'state': 'selected'}, 'backgroundColor': '#eef2ff'}])

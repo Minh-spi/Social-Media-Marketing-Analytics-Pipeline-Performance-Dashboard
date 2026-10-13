@@ -32,11 +32,13 @@ def render(frame, dimension, comparator, interaction):
         fig = empty('No common support: both groups need ≥30 recorded ER values per segment')
     else:
         fig = go.Figure()
-        for col, label,color in [('Entertainment ER (%)','Entertainment',ENTERTAINMENT), ('Comparator ER (%)', comparator,COMPARATOR)]:
+        for col, label, color in [('Entertainment ER (%)', 'Entertainment', ENTERTAINMENT), ('Comparator ER (%)', comparator, COMPARATOR)]:
             if dimension == 'Month':
-                fig.add_scatter(x=supported[dimension],y=supported[col],name=label,mode='lines+markers',line={'color':color,'width':3})
+                fig.add_scatter(x=supported[dimension], y=supported[col], name=label, mode='lines+markers',
+                                line={'color': color, 'width': 3, 'shape': 'spline'},
+                                marker={'size': 7, 'color': '#ffffff', 'line': {'color': color, 'width': 2}})
             else:
-                fig.add_bar(x=supported[dimension], y=supported[col], name=label,marker_color=color)
+                fig.add_bar(x=supported[dimension], y=supported[col], name=label, marker_color=color, marker=dict(cornerradius=5))
         finish(fig, f'Entertainment vs {comparator} · same {dimension}', 'Mean source ER (%)')
         fig.update_layout(barmode='group'); fig.update_xaxes(type='category')
     axes = interaction.split('|')
@@ -47,9 +49,9 @@ def render(frame, dimension, comparator, interaction):
     else:
         pivot = eligible.pivot(index=axes[0], columns=axes[1], values='Gap (pp)')
         heatmap = go.Figure(go.Heatmap(z=pivot.values, x=pivot.columns, y=pivot.index,
-            colorscale=[[0,'#f9f7f1'],[.5,'#d6c39d'],[1,'#987536']], text=pivot.round(2).values, texttemplate='%{text}',
+            colorscale=[[0, '#eff6ff'], [0.35, '#fde68a'], [0.7, '#f97316'], [1, '#dc2626']], text=pivot.round(2).values, texttemplate='%{text}',
             hovertemplate='%{y} / %{x}<br>Comparator − Entertainment: %{z:.2f} pp<extra></extra>',
-            hoverongaps=False, colorbar={'title':'pp'}))
+            hoverongaps=False, colorbar={'title': 'Gap (pp)'}))
         finish(heatmap, 'Where does the recorded ER gap remain?'); heatmap.update_layout(height=410)
     subset = frame.loc[~frame.Partial_Month]
     e_count = subset.Content_Category.eq('Entertainment').sum()

@@ -16,6 +16,6 @@ PATHS = {
 }
 
 
-def icon(name, class_name='ui-icon'):
-    svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#606b7a" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">'+PATHS.get(name,PATHS['overview'])+'</svg>'
-    return html.Img(src='data:image/svg+xml,'+quote(svg),alt='',className=class_name)
+def icon(name, class_name='ui-icon', color='#64748b'):
+    svg = f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="{color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">{PATHS.get(name, PATHS["overview"])}</svg>'
+    return html.Img(src='data:image/svg+xml,' + quote(svg), alt='', className=class_name)

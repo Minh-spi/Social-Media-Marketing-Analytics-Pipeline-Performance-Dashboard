@@ -14,13 +14,20 @@ def layout():
 
 def render(frame, metric):
     stats = summarize(frame)
+    colors = {
+        'Views': '#2563eb',
+        'Impressions': '#6366f1',
+        'Engagement': '#059669',
+        'Engagement_Rate': '#d97706'
+    }
     cards = []
     for key in ['Views','Impressions','Engagement','Engagement_Rate']:
         label,kind = METRICS[key]
         cards.append(card(label.replace(' (%)',''),number(stats[key],kind=='rate',compact=True),
-                          f"{stats[key+'_n']:,} valid records"+(' · mean source rate' if kind=='rate' else ' · record sum'),
+                          f"{stats[key+'_n']:,} valid records"+(' · mean rate' if kind=='rate' else ' · record sum'),
                           full_value=number(stats[key],kind=='rate'),
-                          icon_name={'Views':'eye','Impressions':'impressions','Engagement':'engagement','Engagement_Rate':'rate'}[key]))
+                          icon_name={'Views':'eye','Impressions':'impressions','Engagement':'engagement','Engagement_Rate':'rate'}[key],
+                          icon_color=colors[key]))
     coverage = stats['Clicks_n']/len(frame)*100 if len(frame) else float('nan')
     support = [card('Records',number(stats['records']),'Source rows, not unique posts'),
                card('Observed clicks',number(stats['Clicks'],compact=True),'Missing records excluded',full_value=number(stats['Clicks'])),

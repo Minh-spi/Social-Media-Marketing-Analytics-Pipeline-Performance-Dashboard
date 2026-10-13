@@ -36,13 +36,14 @@ def create_app(repository=None):
     categories = sorted(frame.Content_Category.dropna().unique())
     app.layout = html.Div([
         html.Aside([
-            html.Div([html.Span(icon('performance'),className='brand-mark'),html.Div([html.Strong('Social Analytics'),html.Small('MARKETING WORKSPACE')])],className='brand'),
-            html.P('WORKSPACE',className='nav-caption'),
-            dcc.RadioItems(id='navigation',value='overview',className='sidebar-menu',options=[
-                {'label':html.Span([icon('overview'),html.Span('Overview')],className='nav-label'),'value':'overview'},
-                {'label':html.Span([icon('performance'),html.Span('Performance')],className='nav-label'),'value':'performance'},
-                {'label':html.Span([icon('diagnosis'),html.Span('Diagnosis')],className='nav-label'),'value':'diagnosis'},
-                {'label':html.Span([icon('actions'),html.Span('Actions & tests')],className='nav-label'),'value':'recommendations'}]),
+            html.Div([html.Span(icon('performance', color='#ffffff'), className='brand-mark'),
+                      html.Div([html.Strong('Social Analytics'), html.Small('MARKETING WORKSPACE')])], className='brand'),
+            html.P('WORKSPACE', className='nav-caption'),
+            dcc.RadioItems(id='navigation', value='overview', className='sidebar-menu', options=[
+                {'label': html.Span([icon('overview', color='#94a3b8'), html.Span('Overview')], className='nav-label'), 'value': 'overview'},
+                {'label': html.Span([icon('performance', color='#94a3b8'), html.Span('Performance')], className='nav-label'), 'value': 'performance'},
+                {'label': html.Span([icon('diagnosis', color='#94a3b8'), html.Span('Diagnosis')], className='nav-label'), 'value': 'diagnosis'},
+                {'label': html.Span([icon('actions', color='#94a3b8'), html.Span('Actions & tests')], className='nav-label'), 'value': 'recommendations'}]),
             html.Div([html.Span('PORTFOLIO PROJECT',className='eyebrow'),html.P('Social Media Marketing Analytics'),
                       html.Small('Evidence from steps 1–4. Read-only exploration.')],className='sidebar-bottom')],className='sidebar'),
         html.Main([
